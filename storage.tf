@@ -1,6 +1,13 @@
+# storage.tf - Storage Resources
+
 # Reference spoke RG and subnet
 data "azurerm_resource_group" "spoke_rg" {
   name = "${module.naming.azure_service["resource_group"]}-${var.project_name}-${var.environment}"
+}
+
+data "azurerm_virtual_network" "spoke_vnet" {
+  name                = "${module.naming.azure_service["virtual_network"]}-${var.project_name}-${var.environment}"
+  resource_group_name = data.azurerm_resource_group.spoke_rg.name
 }
 
 data "azurerm_subnet" "private_endpoints_subnet" {
@@ -9,7 +16,7 @@ data "azurerm_subnet" "private_endpoints_subnet" {
   resource_group_name  = data.azurerm_resource_group.spoke_rg.name
 }
 
-# Storage Account (updated)
+# Storage Account
 resource "azurerm_storage_account" "storage" {
   name                     = "${module.naming.azure_service["storage_account"]}${module.naming.azure_suffix}"
   resource_group_name      = data.azurerm_resource_group.spoke_rg.name
@@ -19,11 +26,13 @@ resource "azurerm_storage_account" "storage" {
   tags                     = var.tags
 }
 
+# Private Endpoint
 resource "azurerm_private_endpoint" "storage_pe" {
   name                = "${module.naming.azure_service["private_endpoint"]}-${azurerm_storage_account.storage.name}"
   location            = var.location
   resource_group_name = data.azurerm_resource_group.spoke_rg.name
   subnet_id           = data.azurerm_subnet.private_endpoints_subnet.id
+
   private_service_connection {
     name                           = "${azurerm_storage_account.storage.name}-connection"
     private_connection_resource_id = azurerm_storage_account.storage.id
@@ -31,11 +40,3 @@ resource "azurerm_private_endpoint" "storage_pe" {
     subresource_names              = ["blob"]
   }
 }
-
-# Comment out original
-/*
-resource "azurerm_storage_account" "original_storage" {
-  name = "sa-tyrant-dev"
-  # ... original content
-}
-*/

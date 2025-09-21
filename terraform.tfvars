@@ -1,19 +1,23 @@
 project_name = "tyrant"
+environment = "dev"  # Override in pipeline for prod
 location = "westeurope"
-aks_node_count = 3
 subscription_id = ""  # Set in pipeline
+aks_node_count = 3
 hub_acr_name = "crshrd0thubweuprod"
 hub_key_vault_name = "kv-shrd35-hub-weu-prod"
 hub_log_analytics_workspace_id = "log-hub-weu-prod"
 aks_subnet_name = "aks-subnet"
 private_endpoints_subnet_name = "private-endpoints-subnet"
+postgres_admin_login = "admin"
+postgres_admin_password = "securepassword"  # Use KV in prod
+create_per_env = false  # Set to true for per-env resources
 tags = {
   ApplicationName     = "Tyrant"
   WorkloadName        = "Tyrant"
   DataClassification  = "Medium"
   BusinessCriticality = "High"
   Owner               = "IXM"
-  Environment         = "Prod"  # Override in pipeline for dev
+  Environment         = "Prod"
   CreatedBy           = "OpenTofu"
   OperationTeam       = "Tyrant"
 }
