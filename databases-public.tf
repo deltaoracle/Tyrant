@@ -39,7 +39,7 @@ resource "azurerm_postgresql_flexible_server_database" "ingestion_dev" {
   collation = "en_US.utf8"
 }
 
-# Repeat for other DBs: dpnl_ai_dev, scheduler_dev, etc.
+# Repeat for other DBs as needed: dpnl_ai_dev, scheduler_dev, etc.
 
 # Comment out public access rules
 /*

@@ -1,3 +1,5 @@
+# terraform.tfvars - Variable Values
+
 project_name = "tyrant"
 environment = "dev"  # Override in pipeline for prod
 location = "westeurope"
