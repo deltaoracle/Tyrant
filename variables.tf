@@ -3,21 +3,22 @@
 variable "project_name" {
   type        = string
   default     = "tyrant"
-  description = "Project name for naming."
+  description = "Project name for naming convention (required by ixm-module-naming)."
 }
 
 variable "environment" {
   type        = string
-  description = "Environment: 'dev' or 'prod'."
+  description = "Environment to deploy (must be 'dev', 'uat', or 'prod', set via pipeline)."
   validation {
-    condition     = contains(["dev", "prod"], var.environment)
-    error_message = "Environment must be either 'dev' or 'prod'."
+    condition     = contains(["dev", "uat", "prod"], var.environment)
+    error_message = "Environment must be 'dev', 'uat', or 'prod' as per ixm-module-naming."
   }
 }
 
 variable "location" {
   type    = string
   default = "westeurope"
+  description = "Azure region for resources (required by ixm-module-naming)."
 }
 
 variable "subscription_id" {
@@ -82,7 +83,7 @@ variable "tags" {
     DataClassification  = "Medium"
     BusinessCriticality = "High"
     Owner               = "IXM"
-    Environment         = "Prod"
+    Environment         = "$(environment)"  # Dynamic from pipeline
     CreatedBy           = "OpenTofu"
     OperationTeam       = "Tyrant"
   }

@@ -1,7 +1,6 @@
 # terraform.tfvars - Variable Values
 
 project_name = "tyrant"
-environment = "dev"  # Override in pipeline for prod
 location = "westeurope"
 subscription_id = ""  # Set in pipeline
 aks_node_count = 3
@@ -19,7 +18,7 @@ tags = {
   DataClassification  = "Medium"
   BusinessCriticality = "High"
   Owner               = "IXM"
-  Environment         = "Prod"
+  Environment         = "$(environment)"  # Will be replaced by pipeline
   CreatedBy           = "OpenTofu"
   OperationTeam       = "Tyrant"
 }
