@@ -24,7 +24,7 @@ Infrastructure/
 
 ### Option 1: Multi-Stage Pipeline (Recommended)
 
-The updated `azure-pipelines.yml` now supports multi-stage deployment:
+The updated `azure-pipelines-dev.yml` and `azure-pipelines-prod.yml`now support multi-stage deployment:
 
 1. **Backend Setup** - Creates backend infrastructure
 2. **Main Infrastructure** - Deploys core infrastructure (AKS, API Management, etc.)

@@ -81,7 +81,7 @@ variable "private_key_name" {
 variable "certificate_file_path" {
   description = "Path to certificate file"
   type        = string
-  default     = "csr-files/STAR_revenue_ai.crt"
+  default     = "csr-files/STAR_tyrant.crt"
 }
 
 variable "private_key_file_path" {
@@ -93,5 +93,5 @@ variable "private_key_file_path" {
 variable "certificate_chain_file_path" {
   description = "Path to certificate chain file"
   type        = string
-  default     = "csr-files/STAR_revenue_ai.ca-bundle"
+  default     = "csr-files/STAR_tyrant.ca-bundle"
 }

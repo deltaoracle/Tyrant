@@ -1,6 +1,6 @@
 # Certificates Module
 
-This Terraform module manages SSL/TLS certificates for the Revenue AI infrastructure. It is designed to be run **independently** after CSR generation and certificate signing, not as part of the main infrastructure deployment.
+This Terraform module manages SSL/TLS certificates for the IXM Tyrant infrastructure. It is designed to be run **independently** after CSR generation and certificate signing, not as part of the main infrastructure deployment.
 
 The module includes:
 
@@ -71,9 +71,9 @@ create_per_env = true
 certificate_name = "wildcard-ixm-cert"
 certificate_chain_name = "wildcard-ixm-cert-chain"
 private_key_name = "wildcard-ixm-private-key"
-certificate_file_path = "csr-files/STAR_revenue_ai.crt"
+certificate_file_path = "csr-files/STAR_tyrant_ai.crt"
 private_key_file_path = "csr-files/private.key"
-certificate_chain_file_path = "csr-files/STAR_revenue_ai.ca-bundle"
+certificate_chain_file_path = "csr-files/STAR_tyrant_ai.ca-bundle"
 ```
 
 ## File Structure
@@ -93,9 +93,9 @@ certificates/
 
 Place your certificate files in the `csr-files/` directory:
 
-- `STAR_revenue_ai.crt` - The signed certificate
+- `STAR_tyrant_ai.crt` - The signed certificate
 - `private.key` - The private key
-- `STAR_revenue_ai.ca-bundle` - The certificate chain/CA bundle
+- `STAR_tyrant_ai.ca-bundle` - The certificate chain/CA bundle
 
 ## Deployment
 

@@ -1,5 +1,6 @@
 # Fully Automated CSR Generator for Kubernetes
 # This script creates a pod, generates CSR files, copies them locally, and cleans up
+# TO DO: Work with IXM to make relevant adjustments
 
 param(
     [string]$Namespace = "dev",
