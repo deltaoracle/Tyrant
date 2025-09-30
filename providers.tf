@@ -1,8 +1,30 @@
 # providers.tf - Providers Configuration
+terraform {
+  required_version = "~>1.9.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.16.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6.3"
+    }
+  }
+}
+
 
 provider "azurerm" {
   features {}
-  subscription_id = var.subscription_id
+  subscription_id     = var.subscription_id
+  storage_use_azuread = true
+}
+
+provider "azurerm" {
+  alias               = "hub"
+  subscription_id     = var.hub_subscription_id
+  storage_use_azuread = true
+  features {}
 }
 
 provider "kubernetes" {

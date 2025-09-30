@@ -65,13 +65,13 @@ resource "azurerm_application_insights" "chatbot_prod" {
 
 # Azure Bot resources
 resource "azurerm_bot_service_azure_bot" "chatbot_dev" {
-  name                = var.bot_dev_name
-  resource_group_name = azurerm_resource_group.chatbot_rg.name
-  location            = var.bot_location
-  microsoft_app_id    = azuread_application.chatbot_dev.application_id #"00574fd5-4db9-44c6-a234-840e7c6e7241" 
-  microsoft_app_type  = "SingleTenant"
+  name                    = var.bot_dev_name
+  resource_group_name     = azurerm_resource_group.chatbot_rg.name
+  location                = var.bot_location
+  microsoft_app_id        = azuread_application.chatbot_dev.application_id #"00574fd5-4db9-44c6-a234-840e7c6e7241" 
+  microsoft_app_type      = "SingleTenant"
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
-  sku                 = var.bot_dev_sku
+  sku                     = var.bot_dev_sku
 
   endpoint = var.chatbot_dev_endpoint
 
@@ -82,13 +82,13 @@ resource "azurerm_bot_service_azure_bot" "chatbot_dev" {
 }
 
 resource "azurerm_bot_service_azure_bot" "chatbot_stage" {
-  name                = var.bot_stage_name
-  resource_group_name = azurerm_resource_group.chatbot_rg.name
-  location            = var.bot_location
-  microsoft_app_id    = azuread_application.chatbot_stage.application_id
-  microsoft_app_type  = "SingleTenant"
+  name                    = var.bot_stage_name
+  resource_group_name     = azurerm_resource_group.chatbot_rg.name
+  location                = var.bot_location
+  microsoft_app_id        = azuread_application.chatbot_stage.application_id
+  microsoft_app_type      = "SingleTenant"
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
-  sku                 = var.bot_stage_sku
+  sku                     = var.bot_stage_sku
 
   endpoint = var.chatbot_stage_endpoint
 
@@ -99,13 +99,13 @@ resource "azurerm_bot_service_azure_bot" "chatbot_stage" {
 }
 
 resource "azurerm_bot_service_azure_bot" "chatbot_stage_uat" {
-  name                = var.bot_stage_uat_name
-  resource_group_name = azurerm_resource_group.chatbot_rg.name
-  location            = var.bot_location
-  microsoft_app_id    = azuread_application.chatbot_stage_uat.application_id
-  microsoft_app_type  = "SingleTenant"
+  name                    = var.bot_stage_uat_name
+  resource_group_name     = azurerm_resource_group.chatbot_rg.name
+  location                = var.bot_location
+  microsoft_app_id        = azuread_application.chatbot_stage_uat.application_id
+  microsoft_app_type      = "SingleTenant"
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
-  sku                 = var.bot_stage_uat_sku
+  sku                     = var.bot_stage_uat_sku
 
   endpoint = var.chatbot_stage_uat_endpoint
 
@@ -116,13 +116,13 @@ resource "azurerm_bot_service_azure_bot" "chatbot_stage_uat" {
 }
 
 resource "azurerm_bot_service_azure_bot" "chatbot_prod" {
-  name                = var.bot_prod_name
-  resource_group_name = azurerm_resource_group.chatbot_rg.name
-  location            = var.bot_location
-  microsoft_app_id    = azuread_application.chatbot_prod.application_id
-  microsoft_app_type  = "SingleTenant"
+  name                    = var.bot_prod_name
+  resource_group_name     = azurerm_resource_group.chatbot_rg.name
+  location                = var.bot_location
+  microsoft_app_id        = azuread_application.chatbot_prod.application_id
+  microsoft_app_type      = "SingleTenant"
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
-  sku                 = var.bot_prod_sku
+  sku                     = var.bot_prod_sku
 
   endpoint = var.chatbot_prod_endpoint
 
@@ -134,21 +134,21 @@ resource "azurerm_bot_service_azure_bot" "chatbot_prod" {
 
 # Azure AD Application Registrations for the bots
 resource "azuread_application" "chatbot_dev" {
-  display_name = var.bot_dev_name
-  sign_in_audience = "AzureADMyOrg"  # Single tenant
+  display_name     = var.bot_dev_name
+  sign_in_audience = "AzureADMyOrg" # Single tenant
 }
 
 resource "azuread_application" "chatbot_stage" {
-  display_name = var.bot_stage_name
-  sign_in_audience = "AzureADMyOrg"  # Single tenant
+  display_name     = var.bot_stage_name
+  sign_in_audience = "AzureADMyOrg" # Single tenant
 }
 
 resource "azuread_application" "chatbot_stage_uat" {
-  display_name = var.bot_stage_uat_name
-  sign_in_audience = "AzureADMyOrg"  # Single tenant
+  display_name     = var.bot_stage_uat_name
+  sign_in_audience = "AzureADMyOrg" # Single tenant
 }
 
 resource "azuread_application" "chatbot_prod" {
-  display_name = var.bot_prod_name
-  sign_in_audience = "AzureADMyOrg"  # Single tenant
+  display_name     = var.bot_prod_name
+  sign_in_audience = "AzureADMyOrg" # Single tenant
 } 

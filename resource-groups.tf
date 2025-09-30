@@ -1,10 +1,5 @@
 # resource-groups.tf - Resource Groups
 
-# Use pre-provisioned spoke RG
-data "azurerm_resource_group" "spoke_rg" {
-  name = "${module.naming.azure_service["resource_group"]}-${var.project_name}-${var.environment}"
-}
-
 # Create additional spoke RGs if per-env is enabled
 resource "azurerm_resource_group" "additional_rg" {
   count    = var.create_per_env ? 1 : 0

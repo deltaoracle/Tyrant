@@ -59,10 +59,10 @@ data "azurerm_key_vault" "kv" {
 
 # Install cert-manager for automatic certificate management
 resource "helm_release" "cert_manager" {
-  name       = "cert-manager"
-  repository = "https://charts.jetstack.io"
-  chart      = "cert-manager"
-  namespace  = "cert-manager"
+  name             = "cert-manager"
+  repository       = "https://charts.jetstack.io"
+  chart            = "cert-manager"
+  namespace        = "cert-manager"
   create_namespace = true
 
   set {
@@ -83,7 +83,7 @@ resource "helm_release" "azure_key_vault_csi_driver" {
   name       = "csi"
   repository = "https://azure.github.io/secrets-store-csi-driver-provider-azure/charts"
   chart      = "csi-secrets-store-provider-azure"
-  version    = "1.6.0"  # Latest available version
+  version    = "1.6.0" # Latest available version
   namespace  = "kube-system"
 
   set {
@@ -102,7 +102,7 @@ resource "helm_release" "azure_key_vault_csi_driver" {
   }
 
   depends_on = [data.azurerm_kubernetes_cluster.aks]
-  
+
   timeout = 600 # 10 minutes
 }
 
@@ -147,9 +147,9 @@ resource "kubernetes_cluster_role_binding" "secrets_store_csi_driver" {
 
 # Import the certificate into Key Vault for each environment
 resource "azurerm_key_vault_certificate" "wildcard_cert" {
-  for_each      = var.create_per_env ? toset(var.environments) : toset([""])
-  name          = var.certificate_name
-  key_vault_id  = data.azurerm_key_vault.kv[each.value].id
+  for_each     = var.create_per_env ? toset(var.environments) : toset([""])
+  name         = var.certificate_name
+  key_vault_id = data.azurerm_key_vault.kv[each.value].id
 
   certificate {
     contents = base64encode("${file("${path.module}/${var.private_key_file_path}")}\n${file("${path.module}/${var.certificate_file_path}")}")
@@ -161,20 +161,20 @@ resource "azurerm_key_vault_certificate" "wildcard_cert" {
 
 # Store the certificate chain as a separate secret for completeness for each environment
 resource "azurerm_key_vault_secret" "wildcard_cert_chain" {
-  for_each      = var.create_per_env ? toset(var.environments) : toset([""])
-  name          = var.certificate_chain_name
-  value         = file("${path.module}/${var.certificate_chain_file_path}")
-  key_vault_id  = data.azurerm_key_vault.kv[each.value].id
+  for_each     = var.create_per_env ? toset(var.environments) : toset([""])
+  name         = var.certificate_chain_name
+  value        = file("${path.module}/${var.certificate_chain_file_path}")
+  key_vault_id = data.azurerm_key_vault.kv[each.value].id
 
   depends_on = [data.azurerm_key_vault.kv]
 }
 
 # Store the private key as a secret in Key Vault for each environment
 resource "azurerm_key_vault_secret" "wildcard_private_key" {
-  for_each      = var.create_per_env ? toset(var.environments) : toset([""])
-  name          = var.private_key_name
-  value         = file("${path.module}/${var.private_key_file_path}")
-  key_vault_id  = data.azurerm_key_vault.kv[each.value].id
+  for_each     = var.create_per_env ? toset(var.environments) : toset([""])
+  name         = var.private_key_name
+  value        = file("${path.module}/${var.private_key_file_path}")
+  key_vault_id = data.azurerm_key_vault.kv[each.value].id
 
   depends_on = [data.azurerm_key_vault.kv]
 }
@@ -184,7 +184,7 @@ resource "azurerm_key_vault_secret" "wildcard_private_key" {
 # Create the same SecretProviderClass for dev namespace
 resource "kubernetes_manifest" "secret_provider_class_dev" {
   for_each = var.create_per_env ? toset(["dev"]) : toset([])
-  
+
   manifest = {
     apiVersion = "secrets-store.csi.x-k8s.io/v1"
     kind       = "SecretProviderClass"
@@ -211,18 +211,18 @@ resource "kubernetes_manifest" "secret_provider_class_dev" {
         }
       ]
       parameters = {
-        usePodIdentity = "false"
-        useVMManagedIdentity = "true"
+        usePodIdentity         = "false"
+        useVMManagedIdentity   = "true"
         userAssignedIdentityID = data.azurerm_kubernetes_cluster.aks.kubelet_identity[0].client_id
-        keyvaultName = data.azurerm_key_vault.kv[each.key].name
-        objects = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
-        tenantID = data.azurerm_client_config.current.tenant_id
+        keyvaultName           = data.azurerm_key_vault.kv[each.key].name
+        objects                = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
+        tenantID               = data.azurerm_client_config.current.tenant_id
       }
     }
   }
 
   depends_on = [helm_release.azure_key_vault_csi_driver, kubernetes_cluster_role_binding.secrets_store_csi_driver]
-  
+
   # Wait for the CRD to be available
   timeouts {
     create = "10m"
@@ -232,7 +232,7 @@ resource "kubernetes_manifest" "secret_provider_class_dev" {
 # Create the same SecretProviderClass for test namespace
 resource "kubernetes_manifest" "secret_provider_class_test" {
   for_each = var.create_per_env ? toset(["test"]) : toset([])
-  
+
   manifest = {
     apiVersion = "secrets-store.csi.x-k8s.io/v1"
     kind       = "SecretProviderClass"
@@ -259,18 +259,18 @@ resource "kubernetes_manifest" "secret_provider_class_test" {
         }
       ]
       parameters = {
-        usePodIdentity = "false"
-        useVMManagedIdentity = "true"
+        usePodIdentity         = "false"
+        useVMManagedIdentity   = "true"
         userAssignedIdentityID = data.azurerm_kubernetes_cluster.aks.kubelet_identity[0].client_id
-        keyvaultName = data.azurerm_key_vault.kv[each.key].name
-        objects = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
-        tenantID = data.azurerm_client_config.current.tenant_id
+        keyvaultName           = data.azurerm_key_vault.kv[each.key].name
+        objects                = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
+        tenantID               = data.azurerm_client_config.current.tenant_id
       }
     }
   }
 
   depends_on = [helm_release.azure_key_vault_csi_driver, kubernetes_cluster_role_binding.secrets_store_csi_driver]
-  
+
   # Wait for the CRD to be available
   timeouts {
     create = "10m"
@@ -280,7 +280,7 @@ resource "kubernetes_manifest" "secret_provider_class_test" {
 # Create the same SecretProviderClass for stage namespace
 resource "kubernetes_manifest" "secret_provider_class_stage" {
   for_each = var.create_per_env ? toset(["stage"]) : toset([])
-  
+
   manifest = {
     apiVersion = "secrets-store.csi.x-k8s.io/v1"
     kind       = "SecretProviderClass"
@@ -307,18 +307,18 @@ resource "kubernetes_manifest" "secret_provider_class_stage" {
         }
       ]
       parameters = {
-        usePodIdentity = "false"
-        useVMManagedIdentity = "true"
+        usePodIdentity         = "false"
+        useVMManagedIdentity   = "true"
         userAssignedIdentityID = data.azurerm_kubernetes_cluster.aks.kubelet_identity[0].client_id
-        keyvaultName = data.azurerm_key_vault.kv[each.key].name
-        objects = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
-        tenantID = data.azurerm_client_config.current.tenant_id
+        keyvaultName           = data.azurerm_key_vault.kv[each.key].name
+        objects                = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
+        tenantID               = data.azurerm_client_config.current.tenant_id
       }
     }
   }
 
   depends_on = [helm_release.azure_key_vault_csi_driver, kubernetes_cluster_role_binding.secrets_store_csi_driver]
-  
+
   # Wait for the CRD to be available
   timeouts {
     create = "10m"
@@ -328,7 +328,7 @@ resource "kubernetes_manifest" "secret_provider_class_stage" {
 # Create the same SecretProviderClass for stage-uat namespace
 resource "kubernetes_manifest" "secret_provider_class_stage_uat" {
   for_each = var.create_per_env ? toset(["stage-uat"]) : toset([])
-  
+
   manifest = {
     apiVersion = "secrets-store.csi.x-k8s.io/v1"
     kind       = "SecretProviderClass"
@@ -355,18 +355,18 @@ resource "kubernetes_manifest" "secret_provider_class_stage_uat" {
         }
       ]
       parameters = {
-        usePodIdentity = "false"
-        useVMManagedIdentity = "true"
+        usePodIdentity         = "false"
+        useVMManagedIdentity   = "true"
         userAssignedIdentityID = data.azurerm_kubernetes_cluster.aks.kubelet_identity[0].client_id
-        keyvaultName = data.azurerm_key_vault.kv[each.key].name
-        objects = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
-        tenantID = data.azurerm_client_config.current.tenant_id
+        keyvaultName           = data.azurerm_key_vault.kv[each.key].name
+        objects                = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
+        tenantID               = data.azurerm_client_config.current.tenant_id
       }
     }
   }
 
   depends_on = [helm_release.azure_key_vault_csi_driver, kubernetes_cluster_role_binding.secrets_store_csi_driver]
-  
+
   # Wait for the CRD to be available
   timeouts {
     create = "10m"
@@ -377,7 +377,7 @@ resource "kubernetes_manifest" "secret_provider_class_stage_uat" {
 # Create the same SecretProviderClass for prod namespace
 resource "kubernetes_manifest" "secret_provider_class_prod" {
   for_each = var.create_per_env ? toset(["prod"]) : toset([])
-  
+
   manifest = {
     apiVersion = "secrets-store.csi.x-k8s.io/v1"
     kind       = "SecretProviderClass"
@@ -404,18 +404,18 @@ resource "kubernetes_manifest" "secret_provider_class_prod" {
         }
       ]
       parameters = {
-        usePodIdentity = "false"
-        useVMManagedIdentity = "true"
+        usePodIdentity         = "false"
+        useVMManagedIdentity   = "true"
         userAssignedIdentityID = data.azurerm_kubernetes_cluster.aks.kubelet_identity[0].client_id
-        keyvaultName = data.azurerm_key_vault.kv[each.key].name
-        objects = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
-        tenantID = data.azurerm_client_config.current.tenant_id
+        keyvaultName           = data.azurerm_key_vault.kv[each.key].name
+        objects                = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
+        tenantID               = data.azurerm_client_config.current.tenant_id
       }
     }
   }
 
   depends_on = [helm_release.azure_key_vault_csi_driver, kubernetes_cluster_role_binding.secrets_store_csi_driver]
-  
+
   # Wait for the CRD to be available
   timeouts {
     create = "10m"
@@ -425,7 +425,7 @@ resource "kubernetes_manifest" "secret_provider_class_prod" {
 # Create SecretProviderClass for single key vault when create_per_env is false
 resource "kubernetes_manifest" "secret_provider_class_single" {
   count = var.create_per_env ? 0 : 1
-  
+
   manifest = {
     apiVersion = "secrets-store.csi.x-k8s.io/v1"
     kind       = "SecretProviderClass"
@@ -452,18 +452,18 @@ resource "kubernetes_manifest" "secret_provider_class_single" {
         }
       ]
       parameters = {
-        usePodIdentity = "false"
-        useVMManagedIdentity = "true"
+        usePodIdentity         = "false"
+        useVMManagedIdentity   = "true"
         userAssignedIdentityID = data.azurerm_kubernetes_cluster.aks.kubelet_identity[0].client_id
-        keyvaultName = data.azurerm_key_vault.kv[""].name
-        objects = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
-        tenantID = data.azurerm_client_config.current.tenant_id
+        keyvaultName           = data.azurerm_key_vault.kv[""].name
+        objects                = "array:\n  - |\n    objectName: ${var.certificate_name}\n    objectType: secret\n  - |\n    objectName: ${var.private_key_name}\n    objectType: secret\n  - |\n    objectName: ${var.certificate_chain_name}\n    objectType: secret"
+        tenantID               = data.azurerm_client_config.current.tenant_id
       }
     }
   }
 
   depends_on = [helm_release.azure_key_vault_csi_driver, kubernetes_cluster_role_binding.secrets_store_csi_driver]
-  
+
   # Wait for the CRD to be available
   timeouts {
     create = "10m"

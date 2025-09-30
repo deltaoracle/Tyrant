@@ -1,9 +1,11 @@
 # container-registry.tf - Azure Container Registry (use hub's)
 
 # Reference hub ACR
-data "azurerm_container_registry" "hub_acr" {
+# To Do : export kube identity id as output and set up role in hub
+/* data "azurerm_container_registry" "hub_acr" {
+  provider            = azurerm.hub
   name                = var.hub_acr_name
-  resource_group_name = "rg-hub-weu-prod"
+  resource_group_name = var.hub_resource_group_name
 }
 
 # Grant AKS pull access to hub ACR (if needed)
@@ -11,7 +13,7 @@ resource "azurerm_role_assignment" "aks_acr_pull" {
   scope                = data.azurerm_container_registry.hub_acr.id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
-}
+} */
 
 # Comment out creation
 /*

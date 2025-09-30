@@ -1,15 +1,11 @@
 # data-factory.tf - Azure Data Factory
 
-# Reference spoke RG
-data "azurerm_resource_group" "spoke_rg" {
-  name = "${module.naming.azure_service["resource_group"]}-${var.project_name}-${var.environment}"
-}
-
 # Data Factory
+# Question : No private endpoint available for Data Factory ?
 resource "azurerm_data_factory" "adf" {
   name                = "${module.naming.azure_service["data_factory"]}-${module.naming.azure_suffix}"
   location            = var.location
-  resource_group_name = data.azurerm_resource_group.spoke_rg.name
+  resource_group_name = var.resource_group_name
 
   identity {
     type = "SystemAssigned"

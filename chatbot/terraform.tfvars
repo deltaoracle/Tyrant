@@ -17,37 +17,37 @@ resource_group_name = "rg-ixm-chatbot-all-weu-001"
 log_analytics_workspace_name = "la-ixm-all-weu-001"
 
 # Application Insights resource names
-appinsights_dev_name = "apin-ixm-chatbot-dev-weu-001"
-appinsights_stage_name = "apin-ixm-chatbot-stage-weu-001"
+appinsights_dev_name       = "apin-ixm-chatbot-dev-weu-001"
+appinsights_stage_name     = "apin-ixm-chatbot-stage-weu-001"
 appinsights_stage_uat_name = "apin-ixm-chatbot-stage-uat-weu-001"
-appinsights_prod_name = "apin-ixm-chatbot-prod-weu-001"
+appinsights_prod_name      = "apin-ixm-chatbot-prod-weu-001"
 
 # Azure Bot resource names
-bot_dev_name = "abot-ixm-chatbot-dev-weu-001"
-bot_stage_name = "abot-ixm-chatbot-stage-weu-001"
+bot_dev_name       = "abot-ixm-chatbot-dev-weu-001"
+bot_stage_name     = "abot-ixm-chatbot-stage-weu-001"
 bot_stage_uat_name = "abot-ixm-chatbot-stage-uat-weu-001"
-bot_prod_name = "abot-ixm-chatbot-prod-weu-001"
+bot_prod_name      = "abot-ixm-chatbot-prod-weu-001"
 
 # Bot endpoint URLs - Update these with your actual bot endpoints
 # These should point to your deployed chatbot applications
-chatbot_dev_endpoint = "https://your-dev-bot-endpoint.com/api/messages"
-chatbot_stage_endpoint = "https://your-stage-bot-endpoint.com/api/messages"
+chatbot_dev_endpoint       = "https://your-dev-bot-endpoint.com/api/messages"
+chatbot_stage_endpoint     = "https://your-stage-bot-endpoint.com/api/messages"
 chatbot_stage_uat_endpoint = "https://your-stage-uat-bot-endpoint.com/api/messages"
-chatbot_prod_endpoint = "https://your-prod-bot-endpoint.com/api/messages"
+chatbot_prod_endpoint      = "https://your-prod-bot-endpoint.com/api/messages"
 
 # Application Insights Configuration
 application_insights_type = "web"
 
 # Azure Bot Configuration
-bot_location = "Global"
-bot_dev_sku = "F0"
-bot_stage_sku = "F0"
+bot_location      = "Global"
+bot_dev_sku       = "F0"
+bot_stage_sku     = "F0"
 bot_stage_uat_sku = "F0"
-bot_prod_sku = "S1"
+bot_prod_sku      = "S1"
 
 # Project and Environment Tags
-project_name = "ixm-chatbot"
-environment_dev = "dev"
-environment_stage = "stage"
+project_name          = "ixm-chatbot"
+environment_dev       = "dev"
+environment_stage     = "stage"
 environment_stage_uat = "stage-uat"
-environment_prod = "prod"
+environment_prod      = "prod"

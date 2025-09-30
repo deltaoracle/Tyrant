@@ -1,22 +1,22 @@
 # monitoring.tf - Monitoring Resources
 
-# Reference hub Log Analytics Workspace
-data "azurerm_log_analytics_workspace" "hub_law" {
-  name                = var.hub_log_analytics_workspace_id
-  resource_group_name = "rg-hub-weu-prod"
-}
+# Spoke Log Analytics Workspace
+resource "azurerm_log_analytics_workspace" "observability" {
+  name                = "${module.naming.azure_service["log_analytics_workspace"]}-${module.naming.azure_suffix}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  sku                 = var.log_analytics_workspace_sku
+  retention_in_days   = var.log_analytics_workspace_retention_in_days
 
-# Reference spoke RG
-data "azurerm_resource_group" "spoke_rg" {
-  name = "${module.naming.azure_service["resource_group"]}-${var.project_name}-${var.environment}"
+  tags = merge({ ApplicationName = "Log Analytics Workspace" }, var.tags)
 }
 
 # Application Insights
 resource "azurerm_application_insights" "app_insights" {
-  name                = "${module.naming.azure_service["application_insights"]}-${module.naming.azure_suffix}"
+  name                = "${module.naming.azure_service["app_insights"]}-${module.naming.azure_suffix}"
   location            = var.location
-  resource_group_name = data.azurerm_resource_group.spoke_rg.name
-  workspace_id        = data.azurerm_log_analytics_workspace.hub_law.id
+  resource_group_name = var.resource_group_name
+  workspace_id        = azurerm_log_analytics_workspace.observability.id
   application_type    = "web"
   tags                = var.tags
 }
