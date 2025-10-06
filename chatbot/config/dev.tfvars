@@ -1,0 +1,27 @@
+##
+# Global
+##
+
+project_name = "tyrant"
+environment  = "dev"
+location     = "westeurope"
+
+tags = {
+  ApplicationName     = "Tyrant"
+  WorkloadName        = "Tyrant-Chatbot"
+  DataClassification  = "Medium"
+  BusinessCriticality = "High"
+  Owner               = "IXM"
+  Environment         = "Dev"
+  CreatedBy           = "Terraform"
+  OperationTeam       = "Tyrant"
+}
+
+# Shared Resource Group (from main infrastructure)
+shared_resource_group_name = "rg-tyrant-weu-dev"
+
+# Bot endpoint URL - Update this with your actual bot endpoint for dev
+chatbot_endpoint = "https://your-dev-bot-endpoint.com/api/messages"
+
+# Azure Bot Configuration - Environment-specific
+bot_sku = "F0"
