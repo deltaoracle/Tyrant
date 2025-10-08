@@ -4,15 +4,16 @@
 
 project_name        = "tyrant"
 location            = "westeurope"
-subscription_id     = "e6bd9746-705d-4b10-a979-1eaf211a9d5e"
-resource_group_name = "rg-tyrant-weu-dev"
+subscription_id     = "5d6c5db2-7f61-4253-8602-5018eee3aaef"
+resource_group_name = "rg-tyrant-weu-prod"
+environment         = "prod"
 tags = {
   ApplicationName     = "Tyrant"
   WorkloadName        = "Tyrant"
   DataClassification  = "Medium"
   BusinessCriticality = "High"
   Owner               = "IXM"
-  Environment         = "Dev"
+  Environment         = "Prod"
   CreatedBy           = "Terraform"
   OperationTeam       = "Tyrant"
 }
@@ -34,17 +35,17 @@ private_endpoints_subnet_name = "snet-endpoints"
 postgres_subnet_name          = "snet-postgres"
 
 postgres_server = {
-  version    = "13"
-  storage_mb = 32768
+  version    = "16"
+  storage_mb = 2097152
   sku_name   = "GP_Standard_D4s_v3"
 }
 
 postgres_admin_login = "pgadmin"
 
-postgres_databases = {
-  ingestion_dev = {
-    name      = "dpnl_ingestion_dev"
-    charset   = "UTF8"
-    collation = "en_US.utf8"
-  }
-}
+# postgres_databases = {
+#   ingestion_dev = {
+#     name      = "dpnl_ingestion_dev"
+#     charset   = "UTF8"
+#     collation = "en_US.utf8"
+#   }
+# } 

@@ -44,5 +44,5 @@ output "bot_name" {
 # Azure AD Application Registration outputs
 output "app_registration_id" {
   description = "Application ID of the bot registration"
-  value       = azuread_application.chatbot.application_id
+  value       = azuread_application.chatbot.client_id
 } 

@@ -10,7 +10,7 @@ resource "azurerm_key_vault" "spoke_kv" {
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   sku_name                      = "standard"
   public_network_access_enabled = true
-  enable_rbac_authorization     = true
+  rbac_authorization_enabled    = true
 
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
@@ -51,22 +51,3 @@ resource "azurerm_private_endpoint" "spoke_kv" {
 
   tags = var.tags
 }
-
-# # Access Policy (example for current user)
-# resource "azurerm_key_vault_access_policy" "example" {
-#   key_vault_id = azurerm_key_vault.spoke_kv.id
-#   tenant_id    = data.azurerm_client_config.current.tenant_id
-#   object_id    = data.azurerm_client_config.current.object_id
-
-#   key_permissions = [
-#     "Get",
-#   ]
-
-#   secret_permissions = [
-#     "Get",
-#   ]
-
-#   storage_permissions = [
-#     "Get",
-#   ]
-# }

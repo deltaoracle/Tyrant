@@ -1,3 +1,10 @@
+resources:
+  repositories:
+  - repository: templates
+    type: git
+    name: ixm-iac/ixm-library-cicd
+    ref: refs/heads/main
+
 trigger:
   branches:
     include:
@@ -8,253 +15,76 @@ trigger:
     - README.md
     - '*.md'
 
-# Enable manual pipeline runs
 pr: none
 
 variables:
-- group: terraform-pipeline
+- group: tofu-pipeline
+- name: 'tofuVersion'
+  value: '1.10.6'
+- name: tfstateKeyPrefix
+  value: 'projects/tyrant'
 
-# Parameters for manual environment selection
 parameters:
-- name: targetEnvironment
-  displayName: 'Target Environment (leave empty to deploy all environments with changes)'
+- name: targetLayer
+  displayName: 'Target Layer (leave empty for all layers)(use the folder name of each layer)'
   type: string
   default: ''
-
+- name: targetEnvironment
+  displayName: 'Target Environment (leave empty for all environments)(use the name of the environment file)'
+  type: string
+  default: ''
 
 pool:
   vmImage: 'ubuntu-latest'
 
 stages:
-
+# Stage: Parse layers.yml to extract all layers
 - stage: Validate
-  displayName: 'Validate Terraform Code'
+  displayName: '🛡️ Validate Code'
   jobs:
-  - job: CheckTerraform
-    displayName: 'Check Terraform Code'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - checkout: self
-    - task: TerraformInstaller@1
-      displayName: 'Install Terraform'
-      inputs:
-        terraformVersion: '1.9.0'
-    - script: |
-        terraform fmt -check -recursive
-      displayName: 'Terraform Format & Validate'
+  - template: templates-iac/validate-jobs.yml@templates
+    parameters:
+      tofuVersion: '${{ variables.tofuVersion }}'
+      trivyScanners: 'misconfig,secret'
+      trivyIgnoreScanErrors: true
 
-- stage: MainInfrastructure
-  displayName: 'Deploy Main Infrastructure'
-  dependsOn: Validate
-  jobs:
-  - job: GenerateMatrix
-    displayName: 'Generate Matrix from Config Files'
-    steps:
-    - checkout: self
-    - script: |
-        # Get all .tfvars files from config folder and create matrix
-        cd config
-        matrix_json="{"
-        env_list=""
-        first=true
-        for file in *.tfvars; do
-          if [ -f "$file" ]; then
-            filename=$(basename "$file" .tfvars)
-            if [ "$first" = true ]; then
-              first=false
-              env_list="$filename"
-            else
-              matrix_json="$matrix_json,"
-              env_list="$env_list, $filename"
-            fi
-            matrix_json="$matrix_json\"$filename\":{\"file-name\":\"$filename\"}"
-          fi
-        done
-        matrix_json="$matrix_json}"
-        echo "Matrix JSON: $matrix_json"
-        echo "Available environments: $env_list"
-        echo "##vso[task.setvariable variable=matrix;isOutput=true]$matrix_json"
-        echo "##vso[task.setvariable variable=environmentList;isOutput=true]$env_list"
-      displayName: 'Generate Matrix from Config Files'
-      name: 'matrixGenerator'
-
-  - job: PlanAllEnvironments
-    displayName: 'Plan Environments'
-    dependsOn: GenerateMatrix
-    strategy:
-      matrix: $[ dependencies.GenerateMatrix.outputs['matrixGenerator.matrix'] ]
-    variables:
-      file-name: $(file-name)
-    steps:
-    - script: |
-        echo "Checking if should run for environment: $(file-name)"
-        echo "Target parameter: ${{ parameters.targetEnvironment }}"
-        if [ "${{ parameters.targetEnvironment }}" = "" ] || [ "${{ parameters.targetEnvironment }}" = "$(file-name)" ]; then
-          echo "✅ Will process $(file-name) environment"
-          echo "##vso[task.setvariable variable=shouldRun]true"
-        else
-          echo "⏭️ Skipping $(file-name) environment (not matching target)"
-          echo "##vso[task.setvariable variable=shouldRun]false"
-        fi
-      displayName: 'Check Environment Filter'
-    
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: '1.9.0'
-      displayName: 'Install Terraform'
-      condition: eq(variables['shouldRun'], 'true')
-
-    - script: |
-        ORG_NAME="IXMSA"
-        
-        git config --global url."https://$(System.AccessToken)@dev.azure.com/${ORG_NAME}".insteadOf "https://dev.azure.com/${ORG_NAME}"
-        git config --global url."https://$(System.AccessToken)@dev.azure.com".insteadOf "https://dev.azure.com"
-
-      displayName: 'Configure Git Auth for Cross-Project Module'
-      condition: eq(variables['shouldRun'], 'true')
-      env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken) 
-
-    - script: |
-        terraform init \
-          -backend-config=./backend/backend.tfvars \
-          -backend-config="key=projects/tyrant/$(file-name)/terraform.tfstate" \
-          -var-file=./config/$(file-name).tfvars \
-          -reconfigure
-      displayName: 'Terraform Init - $(file-name)'
-      condition: eq(variables['shouldRun'], 'true')
-      workingDirectory: '$(System.DefaultWorkingDirectory)'
-      env:
-        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-        ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - script: terraform validate
-      displayName: 'Terraform Validate - $(file-name)'
-      condition: eq(variables['shouldRun'], 'true')
-      workingDirectory: '$(System.DefaultWorkingDirectory)'
-      env:
-        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-        ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - script: |
-        terraform plan -var="environment=$(file-name)" -var-file="config/$(file-name).tfvars" -out=$(file-name)-tfplan -detailed-exitcode
-        PLAN_EXIT_CODE=$?
-        echo "##vso[task.setvariable variable=planExitCode;isOutput=true]$PLAN_EXIT_CODE"
-        if [ $PLAN_EXIT_CODE -eq 0 ]; then
-          echo "✅ No changes for $(file-name). Infrastructure is up-to-date."
-          exit 0
-        elif [ $PLAN_EXIT_CODE -eq 1 ]; then
-          echo "❌ Terraform plan failed with errors for $(file-name)."
-          exit 1
-        elif [ $PLAN_EXIT_CODE -eq 2 ]; then
-          echo "📋 Terraform plan completed successfully with changes to apply for $(file-name)."
-          echo "🚀 $(file-name) environment is READY FOR DEPLOYMENT"
-          exit 0
-        else
-          echo "⚠️ Unexpected exit code for $(file-name): $PLAN_EXIT_CODE"
-          exit 1
-        fi
-      displayName: '📋 Terraform Plan - $(file-name)'
-      condition: eq(variables['shouldRun'], 'true')
-      workingDirectory: '$(System.DefaultWorkingDirectory)'
-      name: 'planStep'
-      env:
-        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-        ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-    - task: PublishPipelineArtifact@1
-      inputs:
-        targetPath: '$(file-name)-tfplan'
-        artifactName: 'tfplan-$(file-name)'
-        publishLocation: 'pipeline'
-      displayName: 'Publish Terraform Plan - $(file-name)'
-      condition: and(eq(variables['shouldRun'], 'true'), eq(variables['planStep.planExitCode'], '2'))
-
-- stage: ApplyInfrastructure
-  displayName: '🚀 Apply Infrastructure (Manual Run Required)'
-  dependsOn: MainInfrastructure
+# Static stages for each layer (in dependency order)
+# Layer 1: Infra
+- stage: Layer_infra
+  displayName: '🏗️ Layer: infra'
   condition: |
     and(
-      succeeded(),
-      eq(variables['Build.Reason'], 'Manual')
+      in(dependencies.Validate.result, 'Succeeded', 'SucceededWithIssues'),
+      or(
+        eq('${{ parameters.targetLayer }}', ''),
+        eq('${{ parameters.targetLayer }}', 'infra')
+      )
     )
   jobs:
-  - job: ApplyEnvironments
-    displayName: 'Apply Selected Environments'
-    strategy:
-      matrix: $[ stageDependencies.MainInfrastructure.GenerateMatrix.outputs['matrixGenerator.matrix'] ]
-    steps:
-    - checkout: self
-    
-    - script: |
-        echo "Checking if should apply for environment: $(file-name)"
-        echo "Target parameter: ${{ parameters.targetEnvironment }}"
-        if [ "${{ parameters.targetEnvironment }}" = "" ] || [ "${{ parameters.targetEnvironment }}" = "$(file-name)" ]; then
-          echo "✅ Will apply $(file-name) environment"
-          echo "##vso[task.setvariable variable=shouldApply]true"
-        else
-          echo "⏭️ Skipping $(file-name) environment (not matching target)"
-          echo "##vso[task.setvariable variable=shouldApply]false"
-        fi
-      displayName: 'Check Environment Filter for Apply'
-    
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        artifactName: 'tfplan-$(file-name)'
-        downloadPath: '$(System.DefaultWorkingDirectory)'
-      displayName: 'Download Terraform Plan - $(file-name)'
-      condition: eq(variables['shouldApply'], 'true')
-      continueOnError: true
-    
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: '1.9.0'
-      displayName: 'Install Terraform'
-      condition: eq(variables['shouldApply'], 'true')
+  - template: templates-iac/layer-jobs.yml@templates
+    parameters:
+      layerName: 'infra'
+      layerPath: 'infra'
+      tfstateKeyPrefix: '${{ variables.tfstateKeyPrefix }}'
+      targetEnvironment: '${{ parameters.targetEnvironment }}'
+      tofuVersion: '${{ variables.tofuVersion }}'
 
-    - script: |
-        ORG_NAME="IXMSA"
-        
-        git config --global url."https://$(System.AccessToken)@dev.azure.com/${ORG_NAME}".insteadOf "https://dev.azure.com/${ORG_NAME}"
-        git config --global url."https://$(System.AccessToken)@dev.azure.com".insteadOf "https://dev.azure.com"
-      displayName: 'Configure Git Auth for Cross-Project Module'
-      condition: eq(variables['shouldApply'], 'true')
-      env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-
-    - script: |
-        terraform init \
-          -backend-config=./backend/backend.tfvars \
-          -backend-config="key=projects/tyrant/$(file-name)/terraform.tfstate" \
-          -var-file=./config/$(file-name).tfvars \
-          -reconfigure
-      displayName: 'Terraform Init - $(file-name)'
-      condition: eq(variables['shouldApply'], 'true')
-      workingDirectory: '$(System.DefaultWorkingDirectory)'
-      env:
-        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-        ARM_TENANT_ID: $(ARM_TENANT_ID)
-        
-    - script: |
-        echo "🎯 Target Environment: ${{ coalesce(parameters.targetEnvironment, 'All environments with changes') }}"
-        echo "🔧 Applying changes for: $(file-name)"
-        echo ""
-        echo "✅ Proceeding with apply..."
-        if [ -f "$(file-name)-tfplan" ]; then
-          terraform apply -auto-approve $(file-name)-tfplan
-          echo "✅ Applied changes for $(file-name) environment successfully"
-        else
-          echo "ℹ️ No plan file found for $(file-name). Skipping apply."
-        fi
-      displayName: '🚀 Terraform Apply - $(file-name)'
-      condition: eq(variables['shouldApply'], 'true')
-      workingDirectory: '$(System.DefaultWorkingDirectory)'
-      env:
-        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-        ARM_TENANT_ID: $(ARM_TENANT_ID)
+# Layer 2: Chatbot
+- stage: Layer_chatbot
+  displayName: '🏗️ Layer: chatbot'
+  condition: |
+    and(
+      in(dependencies.Validate.result, 'Succeeded', 'SucceededWithIssues'),
+      or(
+        eq('${{ parameters.targetLayer }}', ''),
+        eq('${{ parameters.targetLayer }}', 'chatbot')
+      )
+    )
+  jobs:
+  - template: templates-iac/layer-jobs.yml@templates
+    parameters:
+      layerName: 'chatbot'
+      layerPath: 'chatbot'
+      tfstateKeyPrefix: '${{ variables.tfstateKeyPrefix }}'
+      targetEnvironment: '${{ parameters.targetEnvironment }}'
+      tofuVersion: '${{ variables.tofuVersion }}'

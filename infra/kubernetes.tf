@@ -1,9 +1,4 @@
 # AKS (updated)
-# Question : What about Kube patching ?
-# Question : What about the kube version ?
-# Question : what about private cluster ?
-# Question : No network profile (network_plugin, network_policy) ?
-# Question : No role assignment to pull from ACR (use managed identity) ?
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = "${module.naming.azure_service["container_kubernetes_service"]}-${module.naming.azure_suffix}"
   location            = var.location
@@ -20,10 +15,17 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vm_size        = var.aks_vm_size
     vnet_subnet_id = data.azurerm_subnet.this[var.aks_subnet_name].id
     tags           = var.tags
+    upgrade_settings {
+      drain_timeout_in_minutes      = 0
+      max_surge                     = "10%"
+      node_soak_duration_in_minutes = 0
+    }
   }
   identity {
     type = "SystemAssigned"
   }
+
+
   lifecycle {
     ignore_changes = [
       tags,
@@ -40,13 +42,11 @@ resource "azurerm_key_vault_secret" "kube_config" {
 
 }
 
-# Helm releases (update to pull from hub ACR)
-# Example: helm_release "nginx" { repository = var.hub_acr_name ... }
+# # Create namespaces in AKS
+# resource "kubernetes_namespace" "dev" {
+#   metadata {
+#     name = "dev"
+#   }
 
-# Comment out original
-/*
-resource "azurerm_kubernetes_cluster" "original_aks" {
-  name = "aks-tyrant-dev"
-  # ... original content
-}
-*/
+#   depends_on = [azurerm_kubernetes_cluster.aks]
+# }

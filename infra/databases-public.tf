@@ -23,6 +23,13 @@ resource "azurerm_postgresql_flexible_server" "postgres" {
   storage_mb                    = var.postgres_server.storage_mb
   sku_name                      = var.postgres_server.sku_name
   tags                          = var.tags
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      zone
+    ]
+  }
 }
 
 # Store pgadmin password in Key Vault
@@ -41,14 +48,7 @@ resource "azurerm_postgresql_flexible_server_database" "this" {
   collation = each.value.collation
 
   lifecycle {
-    prevent_destroy = true
+    # Temporarily comment this out to allow Terraform to destroy the DB
+    # prevent_destroy = true
   }
 }
-
-# To create other DB, add config in tfvars files
-# Example:
-# postgres_databases = {
-#   ingestion_dev = { name = "dpnl_ingestion_dev", charset = "UTF8", collation = "en_US.utf8" }
-#   ingestion_test = { name = "dpnl_ingestion_test", charset = "UTF8", collation = "en_US.utf8" }
-#   ingestion_prod = { name = "dpnl_ingestion_prod", charset = "UTF8", collation = "en_US.utf8" }
-# }

@@ -10,10 +10,10 @@ variable "project_name" {
 
 variable "environment" {
   type        = string
-  description = "Environment to deploy (must be 'dev' or 'prod')."
+  description = "Environment to deploy (must be 'dev', 'uat', or 'prod', set via pipeline)."
   validation {
-    condition     = contains(["dev", "prod"], var.environment)
-    error_message = "Environment must be 'dev' or 'prod' as per ixm-module-naming."
+    condition     = contains(["dev", "uat", "prod"], var.environment)
+    error_message = "Environment must be 'dev', 'uat', or 'prod' as per ixm-module-naming."
   }
 }
 
@@ -21,6 +21,11 @@ variable "location" {
   type        = string
   default     = "westeurope"
   description = "Azure region for resources (required by ixm-module-naming)."
+}
+
+variable "subscription_id" {
+  type        = string
+  description = "Azure subscription ID"
 }
 
 variable "tags" {

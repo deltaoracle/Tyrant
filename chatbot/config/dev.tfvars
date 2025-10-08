@@ -2,9 +2,8 @@
 # Global
 ##
 
-project_name = "tyrant"
-environment  = "dev"
-location     = "westeurope"
+environment     = "dev"
+subscription_id = "e6bd9746-705d-4b10-a979-1eaf211a9d5e"
 
 tags = {
   ApplicationName     = "Tyrant"
