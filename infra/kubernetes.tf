@@ -42,11 +42,11 @@ resource "azurerm_key_vault_secret" "kube_config" {
 
 }
 
-# # Create namespaces in AKS
-# resource "kubernetes_namespace" "dev" {
-#   metadata {
-#     name = "dev"
-#   }
+# Create namespace in AKS based on current environment
+resource "kubernetes_namespace" "current_env" {
+  metadata {
+    name = var.environment
+  }
 
-#   depends_on = [azurerm_kubernetes_cluster.aks]
-# }
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
