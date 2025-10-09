@@ -26,13 +26,13 @@ variables:
 
 parameters:
 - name: targetLayer
-  displayName: 'Target Layer (leave empty for all layers)(use the folder name of each layer)'
+  displayName: 'Target Layer (type all for all layers)(use the folder name of each layer)'
   type: string
-  default: ''
+  default: 'all'
 - name: targetEnvironment
-  displayName: 'Target Environment (leave empty for all environments)(use the name of the environment file)'
+  displayName: 'Target Environment (type all for all environments)(use the name of the environment file)'
   type: string
-  default: ''
+  default: 'all'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -56,7 +56,7 @@ stages:
     and(
       in(dependencies.Validate.result, 'Succeeded', 'SucceededWithIssues'),
       or(
-        eq('${{ parameters.targetLayer }}', ''),
+        eq('${{ parameters.targetLayer }}', 'all'),
         eq('${{ parameters.targetLayer }}', 'infra')
       )
     )
@@ -76,7 +76,7 @@ stages:
     and(
       in(dependencies.Validate.result, 'Succeeded', 'SucceededWithIssues'),
       or(
-        eq('${{ parameters.targetLayer }}', ''),
+        eq('${{ parameters.targetLayer }}', 'all'),
         eq('${{ parameters.targetLayer }}', 'chatbot')
       )
     )
