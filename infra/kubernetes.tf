@@ -42,11 +42,19 @@ resource "azurerm_key_vault_secret" "kube_config" {
 
 }
 
-# # Create namespaces in AKS
-# resource "kubernetes_namespace" "dev" {
-#   metadata {
-#     name = "dev"
-#   }
+# Create namespaces in AKS (Tyrant supports dev and prod environments)
+resource "kubernetes_namespace" "dev" {
+  metadata {
+    name = "dev"
+  }
 
-#   depends_on = [azurerm_kubernetes_cluster.aks]
-# }
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
+
+resource "kubernetes_namespace" "prod" {
+  metadata {
+    name = "prod"
+  }
+
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
