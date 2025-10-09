@@ -42,7 +42,12 @@ output "bot_name" {
 }
 
 # Azure AD Application Registration outputs
-output "app_registration_id" {
-  description = "Application ID of the bot registration"
-  value       = azuread_application.chatbot.client_id
+output "app_registration_client_id" {
+  description = "Client ID of the bot registration (from manually created app registration)"
+  value       = data.azuread_application.chatbot.client_id
+}
+
+output "app_registration_display_name" {
+  description = "Display name of the bot registration (from manually created app registration)"
+  value       = data.azuread_application.chatbot.display_name
 } 

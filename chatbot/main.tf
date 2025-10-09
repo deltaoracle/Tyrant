@@ -20,7 +20,7 @@ resource "azurerm_bot_service_azure_bot" "chatbot" {
   name                    = "${module.naming.azure_service["bot_service"]}-chatbot-${module.naming.azure_suffix}"
   resource_group_name     = azurerm_resource_group.chatbot_rg.name
   location                = var.bot_location
-  microsoft_app_id        = azuread_application.chatbot.client_id
+  microsoft_app_id        = data.azuread_application.chatbot.client_id
   microsoft_app_type      = "SingleTenant"
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
   sku                     = var.bot_sku
@@ -28,10 +28,4 @@ resource "azurerm_bot_service_azure_bot" "chatbot" {
   endpoint = var.chatbot_endpoint
 
   tags = var.tags
-}
-
-# Azure AD Application Registrations for the bot
-resource "azuread_application" "chatbot" {
-  display_name     = "${module.naming.azure_service["app_registration"]}-${module.naming.azure_service["bot_service"]}-chatbot-${module.naming.azure_suffix}"
-  sign_in_audience = "AzureADMyOrg" # Single tenant
 } 

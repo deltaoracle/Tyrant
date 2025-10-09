@@ -28,6 +28,7 @@ bot_stage_name = "abot-ixm-chatbot-stage-weu-001"
 bot_prod_name = "abot-ixm-chatbot-prod-weu-001"
 
 # Bot endpoint URLs - Update these with your actual bot endpoints
-chatbot_dev_endpoint = "https://your-dev-bot-endpoint.com/api/messages"
-chatbot_stage_endpoint = "https://your-stage-bot-endpoint.com/api/messages"
-chatbot_prod_endpoint = "https://your-prod-bot-endpoint.com/api/messages" 
+chatbot_endpoint = "https://your-bot-endpoint.com/api/messages"
+
+# Azure AD App Registration (manually created) - Update this with your actual value
+app_registration_client_id = "12345678-9abc-def0-1234-56789abcdef0" 

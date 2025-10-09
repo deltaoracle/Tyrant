@@ -65,4 +65,10 @@ variable "bot_sku" {
   description = "Azure Bot Service SKU"
   type        = string
   default     = "F0"
+}
+
+# App Registration Variables (for manually created app registrations)
+variable "app_registration_client_id" {
+  description = "Client ID of the manually created Azure AD App Registration for the chatbot"
+  type        = string
 } 

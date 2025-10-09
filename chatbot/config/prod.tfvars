@@ -24,3 +24,6 @@ chatbot_endpoint = "https://your-prod-bot-endpoint.com/api/messages"
 
 # Azure Bot Configuration - Environment-specific
 bot_sku = "S1"
+
+# Azure AD App Registration (manually created)
+app_registration_client_id = "fea37708-ec64-40aa-bfc1-87dba0971bc2"
