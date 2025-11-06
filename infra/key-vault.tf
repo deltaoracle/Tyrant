@@ -51,3 +51,9 @@ resource "azurerm_private_endpoint" "spoke_kv" {
 
   tags = var.tags
 }
+
+resource "azurerm_role_assignment" "keyvault_aks_wi" {
+  scope                = azurerm_key_vault.spoke_kv.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.aks_workload_identity.principal_id
+}

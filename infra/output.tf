@@ -29,13 +29,13 @@ output "postgres_fqdn" {
   description = "The FQDN of the PostgreSQL server."
 }
 
-# To Do : provide connection string for all db by listing all databases created
-# Uncomment and adjust if needed
-# output "postgres_connection_string" {
-#   value       = "postgres://${azurerm_postgresql_flexible_server.postgres.administrator_login}:${azurerm_postgresql_flexible_server.postgres.administrator_password}@${azurerm_postgresql_flexible_server.postgres.fqdn}:5432/${azurerm_postgresql_flexible_server_database.example_db.name}"
-#   sensitive   = true
-#   description = "The connection string for the PostgreSQL server."
-# }
+#  To Do : provide connection string for all db by listing all databases created
+#  Uncomment and adjust if needed
+#  output "postgres_connection_string" {
+#    value       = "postgres://${azurerm_postgresql_flexible_server.postgres.administrator_login}:${azurerm_postgresql_flexible_server.postgres.administrator_password}@${azurerm_postgresql_flexible_server.postgres.fqdn}:5432/${azurerm_postgresql_flexible_server_database.example_db.name}"
+#    sensitive   = true
+#    description = "The connection string for the PostgreSQL server."
+#  }
 
 output "storage_account_name" {
   value       = azurerm_storage_account.storage.name

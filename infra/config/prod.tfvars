@@ -28,11 +28,23 @@ subnets_name = [
 # Tyrant
 ##
 
-aks_vm_size                   = "Standard_D2_v3"
-aks_node_count                = 3
+aks_config = {
+  private_cluster_enabled   = true
+  oidc_issuer_enabled       = true
+  workload_identity_enabled = true
+  node_count                = 2
+  vm_size                   = "Standard_D2s_v3"
+  kubernetes_version        = "1.32.7"
+  automatic_upgrade_channel = "stable"
+  network_plugin            = "azure"
+  network_policy            = "azure"
+  network_data_plane        = "azure"
+}
+
 aks_subnet_name               = "snet-aks"
 private_endpoints_subnet_name = "snet-endpoints"
 postgres_subnet_name          = "snet-postgres"
+aks_private_dns_zone_id       = "/subscriptions/99e916f5-203c-4c2c-b32a-6527a1ccdb0d/resourceGroups/rg-hub-weu-prod/providers/Microsoft.Network/privateDnsZones/privatelink.westeurope.azmk8s.io"
 
 postgres_server = {
   version    = "16"

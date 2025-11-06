@@ -35,10 +35,13 @@ parameters:
   default: 'all'
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: ixm-hub-pool           # Self-hosted agent pool name
+  demands:                     # Optional: specify agent requirements
+  - agent.os -equals Linux     # Ensure Linux agents only
+  vmImage: 'ubuntu-latest'     # Fallback to Microsoft-hosted
 
 stages:
-# Stage: Parse layers.yml to extract all layers
+# Stage: Parse layers.yml to extract all layers and clean old header configs on all jobs
 - stage: Validate
   displayName: '🛡️ Validate Code'
   jobs:
@@ -48,8 +51,8 @@ stages:
       trivyScanners: 'misconfig,secret'
       trivyIgnoreScanErrors: true
 
-# Static stages for each layer (in dependency order)
-# Layer 1: Infra
+# Static stages for each layer
+# Layer 1: Infra (Depends on Validate)
 - stage: Layer_infra
   displayName: '🏗️ Layer: infra'
   condition: |
@@ -69,7 +72,7 @@ stages:
       targetEnvironment: '${{ parameters.targetEnvironment }}'
       tofuVersion: '${{ variables.tofuVersion }}'
 
-# Layer 2: Chatbot
+# Layer 2: Chatbot (Depends on Validate)
 - stage: Layer_chatbot
   displayName: '🏗️ Layer: chatbot'
   condition: |

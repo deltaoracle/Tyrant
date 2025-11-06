@@ -92,6 +92,11 @@ variable "hub_resource_group_name" {
 # Kubernetes
 ##
 
+variable "aks_private_dns_zone_id" {
+  type        = string
+  description = "Private DNS Zone ID for the AKS cluster."
+}
+
 variable "aks_node_count" {
   type        = number
   default     = 2
@@ -103,14 +108,25 @@ variable "aks_subnet_name" {
   default = "aks-subnet"
 }
 
-variable "aks_vm_size" {
-  type        = string
-  description = "The size of the Virtual Machines in the AKS default node pool."
-}
-
 variable "private_endpoints_subnet_name" {
   type    = string
   default = "private-endpoints-subnet"
+}
+
+variable "aks_config" {
+  description = "aks cluster config"
+  type = object({
+    private_cluster_enabled   = bool
+    oidc_issuer_enabled       = bool
+    workload_identity_enabled = bool
+    node_count                = number
+    vm_size                   = string
+    kubernetes_version        = string
+    automatic_upgrade_channel = string
+    network_plugin            = string
+    network_policy            = string
+    network_data_plane        = string
+  })
 }
 
 ##
