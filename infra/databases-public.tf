@@ -24,6 +24,17 @@ resource "azurerm_postgresql_flexible_server" "postgres" {
   sku_name                      = var.postgres_server.sku_name
   tags                          = var.tags
 
+  authentication {
+    active_directory_auth_enabled = true
+    password_auth_enabled         = true
+    tenant_id                     = var.tenant_id
+  }
+
+  high_availability {
+    mode                      = var.postgres_server.ha_mode
+    standby_availability_zone = var.postgres_server.ha_standby_zone
+  }
+
   lifecycle {
     prevent_destroy = true
     ignore_changes = [
@@ -37,6 +48,20 @@ resource "azurerm_key_vault_secret" "pgadmin_password" {
   name         = "pgadmin-password-${azurerm_postgresql_flexible_server.postgres.name}"
   value        = random_password.pgadmin_password.result
   key_vault_id = azurerm_key_vault.spoke_kv.id
+}
+
+##
+# Observability
+##
+resource "azurerm_monitor_diagnostic_setting" "postgres" {
+  name                       = "${module.naming.azure_service["monitor_diagnostic_setting"]}-${module.naming.azure_service["postgresql_flexible_server"]}-${module.naming.azure_suffix}"
+  target_resource_id         = azurerm_postgresql_flexible_server.postgres.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.observability.id
+
+  enabled_log {
+    category_group = "AllLogs"
+  }
+
 }
 
 # Databases (example for dev/test/prod separation)

@@ -9,7 +9,7 @@ resource "azurerm_key_vault" "spoke_kv" {
   resource_group_name           = var.resource_group_name
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   sku_name                      = "standard"
-  public_network_access_enabled = true
+  public_network_access_enabled = false
   rbac_authorization_enabled    = true
 
   enabled_for_disk_encryption     = true
@@ -56,4 +56,18 @@ resource "azurerm_role_assignment" "keyvault_aks_wi" {
   scope                = azurerm_key_vault.spoke_kv.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_user_assigned_identity.aks_workload_identity.principal_id
+}
+
+##
+# Observability
+##
+resource "azurerm_monitor_diagnostic_setting" "key-vault" {
+  name                       = "${module.naming.azure_service["monitor_diagnostic_setting"]}-${azurerm_key_vault.spoke_kv.name}-${module.naming.azure_suffix}"
+  target_resource_id         = azurerm_key_vault.spoke_kv.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.observability.id
+
+  enabled_log {
+    category_group = "AllLogs"
+  }
+
 }

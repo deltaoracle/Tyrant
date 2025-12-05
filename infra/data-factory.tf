@@ -20,3 +20,16 @@ resource "azurerm_data_factory" "adf" {
   }
 }
 
+##
+# Observability
+##
+resource "azurerm_monitor_diagnostic_setting" "data_factory" {
+  name                       = "${module.naming.azure_service["monitor_diagnostic_setting"]}-${module.naming.azure_service["data_factory"]}-${module.naming.azure_suffix}"
+  target_resource_id         = azurerm_data_factory.adf.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.observability.id
+
+  enabled_log {
+    category_group = "AllLogs"
+  }
+
+}

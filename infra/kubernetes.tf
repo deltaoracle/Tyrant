@@ -34,6 +34,12 @@ resource "azurerm_role_assignment" "aks_cp_03" {
   principal_id         = azurerm_user_assigned_identity.aks_cp.principal_id
 }
 
+resource "azurerm_role_assignment" "aks_cp_04" {
+  scope                = data.azurerm_virtual_network.spoke_vnet.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azurerm_user_assigned_identity.aks_cp.principal_id
+}
+
 resource "azurerm_role_assignment" "aks_np_01" {
   scope                = data.azurerm_resource_group.spoke_rg.id
   role_definition_name = "Managed Identity Operator"
@@ -108,6 +114,20 @@ resource "azurerm_kubernetes_cluster" "aks" {
     identity_ids = [azurerm_user_assigned_identity.aks_cp.id]
   }
 
+  key_vault_secrets_provider {
+    secret_rotation_enabled  = true
+    secret_rotation_interval = "2m" # Optional, defaults to 2 minutes
+  }
+
+  dynamic "azure_active_directory_role_based_access_control" {
+    for_each = var.aks_config.azure_rbac_enabled ? [1] : []
+    content {
+      tenant_id              = var.tenant_id
+      admin_group_object_ids = var.aks_config.entra_admin_group_id
+      azure_rbac_enabled     = true
+    }
+  }
+
   lifecycle {
     ignore_changes = [
       tags,
@@ -151,4 +171,71 @@ resource "kubernetes_namespace" "current_env" {
   }
 
   depends_on = [azurerm_kubernetes_cluster.aks]
+}
+
+resource "kubernetes_namespace" "nginx_ingress" {
+  metadata {
+    name = "ingress-nginx"
+  }
+
+  depends_on = [azurerm_kubernetes_cluster.aks]
+}
+
+locals {
+  service_principals_role_assignments = distinct(flatten([
+    for role_assignment in var.service_principals_role_assignments : [
+      for role in role_assignment.roles : {
+        display_name         = role_assignment.display_name,
+        role_definition_name = role
+      }
+    ]
+  ]))
+
+  service_principals_role_assignments_loop = { for role_assignment in local.service_principals_role_assignments : "${lower(role_assignment.display_name)}-${lower(replace(role_assignment.role_definition_name, " ", "_"))}" => role_assignment }
+}
+
+##
+# IAM by service principals on AKS
+##
+data "azuread_service_principal" "this" {
+  for_each = local.service_principals_role_assignments_loop
+
+  display_name = each.value.display_name
+}
+
+resource "azurerm_role_assignment" "service_principals" {
+  for_each = local.service_principals_role_assignments_loop
+
+  scope = azurerm_kubernetes_cluster.aks.id
+
+  principal_id         = data.azuread_service_principal.this["${lower(each.value.display_name)}-${lower(replace(each.value.role_definition_name, " ", "_"))}"].object_id
+  role_definition_name = each.value.role_definition_name
+}
+
+##
+# Observability
+##
+resource "azurerm_monitor_diagnostic_setting" "aks" {
+  name                       = "${module.naming.azure_service["monitor_diagnostic_setting"]}-${module.naming.azure_service["container_kubernetes_service"]}-${module.naming.azure_suffix}"
+  target_resource_id         = azurerm_kubernetes_cluster.aks.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.observability.id
+
+  enabled_log {
+    category = "kube-audit"
+  }
+  enabled_log {
+    category = "kube-audit-admin"
+  }
+  enabled_log {
+    category = "kube-apiserver"
+  }
+  enabled_log {
+    category = "kube-controller-manager"
+  }
+  enabled_log {
+    category = "kube-scheduler"
+  }
+  enabled_log {
+    category = "guard"
+  }
 }

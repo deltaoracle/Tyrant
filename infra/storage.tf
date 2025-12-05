@@ -14,11 +14,22 @@ resource "azurerm_storage_account" "storage" {
     0,
     24
   )
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  tags                     = var.tags
+  public_network_access_enabled   = var.storage_account.public_network_access_enabled
+  allow_nested_items_to_be_public = var.storage_account.blob_anonymous_access_enabled
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
+  account_tier                    = var.storage_account.account_tier
+  account_replication_type        = var.storage_account.replication_type
+  tags                            = var.tags
+
+  blob_properties {
+    delete_retention_policy {
+      days = 90
+    }
+    container_delete_retention_policy {
+      days = 90
+    }
+  }
 }
 
 # Private Endpoint
@@ -62,3 +73,37 @@ resource "azurerm_private_endpoint" "storage_pe_file" {
   }
 }
 
+##
+# Observability
+##
+resource "azurerm_monitor_diagnostic_setting" "storage_account_blob" {
+  name                       = "${module.naming.azure_service["monitor_diagnostic_setting"]}-${module.naming.azure_service["storage_account"]}-blob-${module.naming.azure_suffix}"
+  target_resource_id         = "${azurerm_storage_account.storage.id}/blobServices/default"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.observability.id
+
+  enabled_log {
+    category = "StorageRead"
+  }
+  enabled_log {
+    category = "StorageWrite"
+  }
+  enabled_log {
+    category = "StorageDelete"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "storage_account_file" {
+  name                       = "${module.naming.azure_service["monitor_diagnostic_setting"]}-${module.naming.azure_service["storage_account"]}-file-${module.naming.azure_suffix}"
+  target_resource_id         = "${azurerm_storage_account.storage.id}/fileServices/default"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.observability.id
+
+  enabled_log {
+    category = "StorageRead"
+  }
+  enabled_log {
+    category = "StorageWrite"
+  }
+  enabled_log {
+    category = "StorageDelete"
+  }
+}

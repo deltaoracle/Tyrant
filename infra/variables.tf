@@ -34,6 +34,11 @@ variable "subscription_id" {
   description = "Azure subscription ID"
 }
 
+variable "tenant_id" {
+  type        = string
+  description = "Azure tenant ID"
+}
+
 variable "subnets_name" {
   type        = set(string)
   description = "List of subnets name"
@@ -126,7 +131,17 @@ variable "aks_config" {
     network_plugin            = string
     network_policy            = string
     network_data_plane        = string
+    azure_rbac_enabled        = optional(bool, false)
+    entra_admin_group_id      = optional(list(string), [])
   })
+}
+
+variable "service_principals_role_assignments" {
+  type = list(object({
+    display_name : string
+    roles = list(string)
+  }))
+  description = "Assigning role to service principals for the project"
 }
 
 ##
@@ -140,15 +155,19 @@ variable "postgres_subnet_name" {
 
 variable "postgres_server" {
   type = object({
-    version    = string
-    storage_mb = number
-    sku_name   = string
+    version         = string
+    storage_mb      = number
+    sku_name        = string
+    ha_mode         = string
+    ha_standby_zone = optional(string)
   })
   default = {
     version    = "13"
     storage_mb = 32768
     sku_name   = "GP_Gen5_2"
+    ha_mode    = "SameZone"
   }
+
 }
 
 variable "postgres_admin_login" {
@@ -181,4 +200,17 @@ variable "log_analytics_workspace_retention_in_days" {
   description = "The retention in days of the Log Analytics workspace."
   type        = number
   default     = 90
+}
+
+##
+# Storage
+##
+variable "storage_account" {
+  type = object({
+    public_network_access_enabled = bool
+    blob_anonymous_access_enabled = bool
+    account_tier                  = string
+    replication_type              = string
+  })
+  description = "Configure storage account."
 }

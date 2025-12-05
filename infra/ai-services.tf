@@ -38,3 +38,17 @@ resource "azurerm_private_endpoint" "openai_pe" {
 
   tags = var.tags
 }
+
+##
+# Observability
+##
+resource "azurerm_monitor_diagnostic_setting" "cognitive_account" {
+  name                       = "${module.naming.azure_service["monitor_diagnostic_setting"]}-${module.naming.azure_service["cognitive_account"]}-${module.naming.azure_suffix}"
+  target_resource_id         = azurerm_cognitive_account.openai.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.observability.id
+
+  enabled_log {
+    category_group = "AllLogs"
+  }
+
+}

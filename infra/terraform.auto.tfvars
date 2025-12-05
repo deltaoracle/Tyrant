@@ -6,6 +6,7 @@
 
 project_name = "tyrant"
 location     = "westeurope"
+tenant_id    = "203fd445-2bc2-4a4c-93b4-df007cf1dd40"
 # hub
 hub_acr_name                   = "crshrd0thubweuprod"
 hub_key_vault_name             = "kv-shrd35-hub-weu-prod"
